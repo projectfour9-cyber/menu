@@ -1,0 +1,7 @@
+{
+  "name": "WeddingKitchen - Catering Menu Architect",
+  "description": "A high-end catering menu generator that crafts bespoke culinary experiences using a professional dish library and structured document architecture.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
