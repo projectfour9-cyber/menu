@@ -89,7 +89,43 @@ INSERT INTO "public"."dishes" ("id", "cuisine", "category", "name", "description
 	('1ae6cb22-3610-4368-a284-181a08314b81', 'Mediterranean', 'Mains', 'Grilled Halloumi', 'Charred cheese with herbs', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
 	('b28e8916-77c3-4f26-a763-22c10ca8a6f3', 'Mediterranean', 'Sides', 'Greek Salad', 'Feta, olives, cucumber salad', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
 	('b1515777-87cb-4b10-a432-d67bba71dafa', 'Mediterranean', 'Sides', 'Couscous', 'Steamed semolina grains', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
-	('a9082d03-4a49-46b7-a6f0-8e4a5167fa99', 'Any / Mix', 'Appetizers & Starters', 'Chef''s Signature Selection', 'A freshly curated seasonal creation based on your event theme.', '{Veg}', NULL, '2026-01-31 04:33:41.426459+00');
+	('a9082d03-4a49-46b7-a6f0-8e4a5167fa99', 'Any / Mix', 'Appetizers & Starters', 'Chef''s Signature Selection', 'A freshly curated seasonal creation based on your event theme.', '{Veg}', NULL, '2026-01-31 04:33:41.426459+00'),
+	-- Live Counter / Interactive Stations
+	('c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6', 'Punjabi/North Indian', 'Live Counter', 'Chaat Counter', 'Interactive station with pani puri, bhel puri, and sev puri', '{veg,jain}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('d2b3c4d5-e6f7-a8b9-c0d1-e2f3a4b5c6d7', 'Punjabi/North Indian', 'Live Station', 'Dosa Station', 'Freshly made dosas with assorted chutneys', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('e3c4d5e6-f7a8-b9c0-d1e2-f3a4b5c6d7e8', 'South Indian', 'Live Counter', 'Idli & Vada Counter', 'Steamed idlis and crispy vadas made to order', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('f4d5e6f7-a8b9-c0d1-e2f3-a4b5c6d7e8f9', 'Italian', 'Live Station', 'Pasta Station', 'Fresh pasta tossed with choice of sauces', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('a5e6f7a8-b9c0-d1e2-f3a4-b5c6d7e8f9a0', 'Italian', 'Live Counter', 'Pizza Counter', 'Wood-fired pizzas with custom toppings', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('b6f7a8b9-c0d1-e2f3-a4b5-c6d7e8f9a0b1', 'Chinese', 'Live Station', 'Noodle Bar', 'Stir-fried noodles with fresh vegetables', '{veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('c7a8b9c0-d1e2-f3a4-b5c6-d7e8f9a0b1c2', 'Chinese', 'Live Counter', 'Wok Station', 'Live wok cooking with choice of proteins and sauces', '{veg,non-veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('d8b9c0d1-e2f3-a4b5-c6d7-e8f9a0b1c2d3', 'Continental', 'Live Station', 'Salad Bar', 'Fresh greens with gourmet toppings and dressings', '{veg,jain}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('e9c0d1e2-f3a4-b5c6-d7e8-f9a0b1c2d3e4', 'Continental', 'Live Counter', 'Carving Station', 'Chef-carved roasted meats and vegetables', '{non-veg}', NULL, '2026-01-31 04:12:40.147348+00'),
+	('f0d1e2f3-a4b5-c6d7-e8f9-a0b1c2d3e4f5', 'Mediterranean', 'Live Station', 'Falafel & Shawarma Bar', 'Freshly prepared falafel and shawarma wraps', '{veg}', NULL, '2026-01-31 04:12:40.147348+00');
+
+
+
+
+--
+-- Data for Name: sub_menu_items; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."sub_menu_items" ("id", "dish_id", "name", "description", "dietaryTags", "created_at") VALUES
+	-- Pasta Station options
+	('a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6', 'f4d5e6f7-a8b9-c0d1-e2f3-a4b5c6d7e8f9', 'Penne Arrabiata', 'Spicy tomato sauce', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('b2c3d4e5-f6a7-48b9-c0d1-e2f3a4b5c6d7', 'f4d5e6f7-a8b9-c0d1-e2f3-a4b5c6d7e8f9', 'Fusilli Alfredo', 'Creamy white sauce', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('c3d4e5f6-a7b8-49c0-d1e2-f3a4b5c6d7e8', 'f4d5e6f7-a8b9-c0d1-e2f3-a4b5c6d7e8f9', 'Spaghetti Aglio e Olio', 'Garlic and olive oil', '{veg,jain}', '2026-01-31 04:12:40.147348+00'),
+	-- Pizza Counter options
+	('d4e5f6a7-b8c9-40d1-e2f3-a4b5c6d7e8f9', 'a5e6f7a8-b9c0-d1e2-f3a4-b5c6d7e8f9a0', 'Margherita', 'Classic tomato and mozzarella', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('e5f6a7b8-c9d0-41e2-f3a4-b5c6d7e8f9a0', 'a5e6f7a8-b9c0-d1e2-f3a4-b5c6d7e8f9a0', 'Veggie Supreme', 'Loaded with fresh vegetables', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('f6a7b8c9-d0e1-42f3-a4b5-c6d7e8f9a0b1', 'a5e6f7a8-b9c0-d1e2-f3a4-b5c6d7e8f9a0', 'Pepperoni', 'Classic pepperoni and cheese', '{non-veg}', '2026-01-31 04:12:40.147348+00'),
+	-- Noodle Bar options
+	('a7b8c9d0-e1f2-43a4-b5c6-d7e8f9a0b1c2', 'b6f7a8b9-c0d1-e2f3-a4b5-c6d7e8f9a0b1', 'Hakka Noodles', 'Classic stir-fried style', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('b8c9d0e1-f2a3-44b5-c6d7-e8f9a0b1c2d3', 'b6f7a8b9-c0d1-e2f3-a4b5-c6d7e8f9a0b1', 'Schezwan Noodles', 'Spicy Sichuan style', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	('c9d0e1f2-a3b4-45c6-d7e8-f9a0b1c2d3e4', 'b6f7a8b9-c0d1-e2f3-a4b5-c6d7e8f9a0b1', 'Singapore Noodles', 'Curry flavored', '{veg}', '2026-01-31 04:12:40.147348+00'),
+	-- Chaat Counter options
+	('d0e1f2a3-b4c5-46d7-e8f9-a0b1c2d3e4f5', 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6', 'Pani Puri', 'Crispy shells with spiced water', '{veg,jain}', '2026-01-31 04:12:40.147348+00'),
+	('e1f2a3b4-c5d6-47e8-f9a0-b1c2d3e4f5a6', 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6', 'Bhel Puri', 'Puffed rice mix', '{veg,jain}', '2026-01-31 04:12:40.147348+00'),
+	('f2a3b4c5-d6e7-48f9-a0b1-c2d3e4f5a6b7', 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6', 'Sev Puri', 'Crispy base with toppings', '{veg,jain}', '2026-01-31 04:12:40.147348+00');
 
 
 --

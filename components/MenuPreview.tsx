@@ -363,13 +363,31 @@ export const MenuPreview: React.FC<MenuPreviewProps> = ({ menu, onUpdate, imageU
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        {isEditing ? (
-                          <textarea value={item.description} onChange={(e) => updateItem(sIdx, iIdx, { description: e.target.value })} className="w-full bg-white border-2 border-amber-50 rounded-xl p-4 text-slate-600 text-xs min-h-[100px]" />
-                        ) : (
+                      {isEditing ? (
+                        <textarea value={item.description} onChange={(e) => updateItem(sIdx, iIdx, { description: e.target.value })} className="w-full bg-white border border-amber-50 rounded-xl p-4 text-slate-600 text-xs min-h-[100px]" />
+                      ) : (
+                        <>
                           <p className="text-slate-600 text-sm sm:text-base md:text-lg leading-relaxed font-medium text-center sm:text-left">{item.description}</p>
-                        )}
-                      </div>
+
+                          {/* Sub-menu display */}
+                          {item.subMenuItems && item.subMenuItems.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-teal-100/50">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-teal-400 mb-2 text-center sm:text-left">Options Include</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {item.subMenuItems.map((sub, idx) => (
+                                  <div key={idx} className="flex items-start space-x-2">
+                                    <span className="text-teal-500 mt-0.5">•</span>
+                                    <div>
+                                      <span className="text-xs font-bold text-slate-700">{sub.name}</span>
+                                      {sub.description && <span className="text-[10px] text-slate-400 ml-2 italic">— {sub.description}</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))}
                   {isEditing && (

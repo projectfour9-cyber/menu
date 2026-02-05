@@ -1,3 +1,9 @@
+export interface SubMenuItem {
+  id?: string;
+  name: string;
+  description: string;
+  dietaryTags: string[];
+}
 
 export interface MenuItem {
   id?: string;
@@ -5,6 +11,7 @@ export interface MenuItem {
   description: string;
   dietaryTags: string[];
   imageUrl?: string;
+  subMenuItems?: SubMenuItem[];
 }
 
 export interface MenuSection {

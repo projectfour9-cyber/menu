@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MenuItem } from '../types';
-import { fetchCuisineList, fetchDishesByCuisine, updateDish } from '../services/supabaseService';
+import { fetchCuisineList, fetchDishesByCuisine, updateDish, addSubMenuItem, updateSubMenuItem, deleteSubMenuItem, addDishToLibrary } from '../services/supabaseService';
 
 interface DishBankProps {
   userRole?: 'admin' | 'staff' | null;
@@ -18,6 +18,20 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
   const [editingDish, setEditingDish] = useState<MenuItem | null>(null);
   const [editForm, setEditForm] = useState<{ name: string, description: string, cuisine: string }>({ name: '', description: '', cuisine: '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [isManagingSubMenu, setIsManagingSubMenu] = useState(false);
+  const [newSubMenuItem, setNewSubMenuItem] = useState({ name: '', description: '', dietaryTags: [] as string[] });
+
+  // Add Dish State
+  const [isAddingDish, setIsAddingDish] = useState(false);
+  const [addDishForm, setAddDishForm] = useState({
+    name: '',
+    description: '',
+    cuisine: '',
+    category: '',
+    dietaryTags: [] as string[],
+    subMenuItems: [] as Array<{ name: string, description: string, dietaryTags: string[] }>
+  });
+  const [newSubMenuItemForAdd, setNewSubMenuItemForAdd] = useState({ name: '', description: '', dietaryTags: [] as string[] });
 
   // Load cuisines from Supabase
   useEffect(() => {
@@ -94,6 +108,66 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
       alert("Failed to save changes. Please try again.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAddDish = async () => {
+    // Validation
+    if (!addDishForm.name.trim()) {
+      alert('Please enter a dish name');
+      return;
+    }
+    if (!addDishForm.cuisine) {
+      alert('Please select a cuisine');
+      return;
+    }
+    if (!addDishForm.category) {
+      alert('Please select a category');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const newDish: MenuItem = {
+        name: addDishForm.name.trim(),
+        description: addDishForm.description.trim(),
+        dietaryTags: addDishForm.dietaryTags
+      };
+
+      await addDishToLibrary(addDishForm.cuisine, addDishForm.category, newDish);
+
+      // Refresh dishes if the added dish is in the currently selected cuisine
+      if (addDishForm.cuisine === selectedCuisine || selectedCuisine === 'Any / Mix') {
+        const data = await fetchDishesByCuisine(selectedCuisine);
+        setDishes(data);
+      }
+
+      // Reset form and close modal
+      setAddDishForm({
+        name: '',
+        description: '',
+        cuisine: '',
+        category: '',
+        dietaryTags: []
+      });
+      setIsAddingDish(false);
+      alert('Dish added successfully!');
+    } catch (e) {
+      console.error('Failed to add dish', e);
+      alert('Failed to add dish. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleDietaryTag = (tag: string, isAddForm: boolean = false) => {
+    if (isAddForm) {
+      setAddDishForm(prev => ({
+        ...prev,
+        dietaryTags: prev.dietaryTags.includes(tag)
+          ? prev.dietaryTags.filter(t => t !== tag)
+          : [...prev.dietaryTags, tag]
+      }));
     }
   };
 
@@ -264,6 +338,78 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
                 </select>
                 <p className="text-[10px] text-slate-400 mt-1 italic">Moving cuisine will remove it from the current view after save.</p>
               </div>
+
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sub-Menu Items</label>
+                  <button
+                    onClick={() => setIsManagingSubMenu(!isManagingSubMenu)}
+                    className="text-[10px] font-black uppercase tracking-widest text-teal-600 hover:text-teal-700"
+                  >
+                    {isManagingSubMenu ? 'Done' : '+ Add Options'}
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {editingDish.subMenuItems?.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="flex-1">
+                        <div className="text-sm font-bold text-slate-800">{item.name}</div>
+                        <div className="text-[10px] text-slate-500 line-clamp-1">{item.description}</div>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (item.id) {
+                            await deleteSubMenuItem(item.id);
+                            // Refresh
+                            const data = await fetchDishesByCuisine(selectedCuisine);
+                            setDishes(data);
+                            const updatedDish = Object.values(data).flat().find(d => d.id === editingDish.id);
+                            if (updatedDish) setEditingDish(updatedDish);
+                          }
+                        }}
+                        className="ml-2 text-slate-400 hover:text-red-500"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+
+                  {isManagingSubMenu && (
+                    <div className="bg-teal-50/50 p-4 rounded-xl border-2 border-dashed border-teal-200 space-y-3">
+                      <input
+                        placeholder="Option Name (e.g. 'Penne Pasta')"
+                        className="w-full bg-white border border-teal-100 rounded-lg px-3 py-2 text-xs font-semibold outline-none"
+                        value={newSubMenuItem.name}
+                        onChange={e => setNewSubMenuItem({ ...newSubMenuItem, name: e.target.value })}
+                      />
+                      <textarea
+                        placeholder="Short description..."
+                        className="w-full bg-white border border-teal-100 rounded-lg px-3 py-2 text-xs outline-none resize-none"
+                        value={newSubMenuItem.description}
+                        onChange={e => setNewSubMenuItem({ ...newSubMenuItem, description: e.target.value })}
+                        rows={2}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (editingDish.id && newSubMenuItem.name) {
+                            await addSubMenuItem(editingDish.id, { ...newSubMenuItem, dietaryTags: [] });
+                            setNewSubMenuItem({ name: '', description: '', dietaryTags: [] });
+                            // Refresh
+                            const data = await fetchDishesByCuisine(selectedCuisine);
+                            setDishes(data);
+                            const updatedDish = Object.values(data).flat().find(d => d.id === editingDish.id);
+                            if (updatedDish) setEditingDish(updatedDish);
+                          }
+                        }}
+                        className="w-full bg-teal-600 text-white font-bold py-2 rounded-lg text-xs shadow-md"
+                      >
+                        Add to Sub-Menu
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
@@ -280,6 +426,143 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
                 className="px-6 py-2 text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-lg shadow-teal-200 transition-all flex items-center space-x-2"
               >
                 {isSaving ? <span>Saving...</span> : <span>Save Changes</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Add Dish Button (Admin Only) */}
+      {userRole === 'admin' && (
+        <button
+          onClick={() => {
+            setAddDishForm({
+              name: '',
+              description: '',
+              cuisine: selectedCuisine || cuisines[0] || '',
+              category: '',
+              dietaryTags: []
+            });
+            setIsAddingDish(true);
+          }}
+          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-teal-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-teal-300 flex items-center justify-center text-3xl transition-all hover:scale-110 z-50"
+          title="Add New Dish"
+        >
+          +
+        </button>
+      )}
+
+      {/* Add Dish Modal */}
+      {isAddingDish && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xl animate-fade-in">
+          <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-teal-600 to-violet-600 p-8 text-white">
+              <div className="flex justify-between items-center">
+                <h3 className="text-3xl font-black italic">Add New Dish 🍽️</h3>
+                <button
+                  onClick={() => setIsAddingDish(false)}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-white/80 font-medium italic text-sm mt-2">
+                Create a new dish for your menu library
+              </p>
+            </div>
+
+            <div className="p-8 space-y-6">
+              {/* Dish Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase">Dish Name *</label>
+                <input
+                  type="text"
+                  value={addDishForm.name}
+                  onChange={(e) => setAddDishForm({ ...addDishForm, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-teal-50/30 border-2 border-teal-50 rounded-xl outline-none focus:border-teal-500 focus:bg-white transition-all text-sm font-medium"
+                  placeholder="e.g., Butter Chicken"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase">Description</label>
+                <textarea
+                  value={addDishForm.description}
+                  onChange={(e) => setAddDishForm({ ...addDishForm, description: e.target.value })}
+                  className="w-full px-4 py-3 bg-teal-50/30 border-2 border-teal-50 rounded-xl outline-none focus:border-teal-500 focus:bg-white transition-all text-sm font-medium min-h-[80px]"
+                  placeholder="Describe the dish..."
+                />
+              </div>
+
+              {/* Cuisine */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase">Cuisine *</label>
+                <select
+                  value={addDishForm.cuisine}
+                  onChange={(e) => setAddDishForm({ ...addDishForm, cuisine: e.target.value })}
+                  className="w-full px-4 py-3 bg-teal-50/30 border-2 border-teal-50 rounded-xl outline-none focus:border-teal-500 focus:bg-white transition-all text-sm font-medium"
+                >
+                  <option value="">Select Cuisine</option>
+                  {cuisines.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase">Category *</label>
+                <select
+                  value={addDishForm.category}
+                  onChange={(e) => setAddDishForm({ ...addDishForm, category: e.target.value })}
+                  className="w-full px-4 py-3 bg-teal-50/30 border-2 border-teal-50 rounded-xl outline-none focus:border-teal-500 focus:bg-white transition-all text-sm font-medium"
+                >
+                  <option value="">Select Category</option>
+                  <option value="Starters">Starters / Appetizers</option>
+                  <option value="Mains">Main Course</option>
+                  <option value="Live Counter">Live Counter / Station</option>
+                  <option value="Sides">Sides / Accompaniments</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Beverages">Beverages</option>
+                </select>
+              </div>
+
+              {/* Dietary Tags */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase">Dietary Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {['veg', 'non-veg', 'jain', 'vegan', 'gluten-free'].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleDietaryTag(tag, true)}
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${addDishForm.dietaryTags.includes(tag)
+                        ? 'bg-gradient-to-br from-teal-600 to-violet-600 text-white shadow-lg'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
+              <button
+                onClick={() => setIsAddingDish(false)}
+                className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 rounded-xl transition-colors"
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddDish}
+                disabled={isSaving}
+                className="px-6 py-2 text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-lg shadow-teal-200 transition-all flex items-center space-x-2"
+              >
+                {isSaving ? <span>Adding...</span> : <span>Add Dish</span>}
               </button>
             </div>
           </div>

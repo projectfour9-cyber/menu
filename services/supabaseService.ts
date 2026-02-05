@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { MenuPreferences, GeneratedMenu, MenuItem } from "../types";
+import { MenuPreferences, GeneratedMenu, MenuItem, SubMenuItem } from "../types";
 
 const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
@@ -51,7 +51,7 @@ export const fetchCuisineList = async (): Promise<string[]> => {
 export const fetchDishesByCuisine = async (inputCuisine: string): Promise<Record<string, MenuItem[]>> => {
   let query = supabase
     .from('dishes')
-    .select('id, name, description, "dietaryTags", "imageUrl", category, cuisine');
+    .select('id, name, description, "dietaryTags", "imageUrl", category, cuisine, sub_menu_items (id, name, description, "dietaryTags")');
 
   // Mapping logic for UI -> DB values
   const mappings: Record<string, string[]> = {
@@ -92,6 +92,7 @@ export const fetchDishesByCuisine = async (inputCuisine: string): Promise<Record
       description: row.description ?? '',
       dietaryTags: row.dietaryTags ?? [],
       imageUrl: row.imageUrl ?? '',
+      subMenuItems: row.sub_menu_items ?? []
     });
   }
 
@@ -133,6 +134,34 @@ export const updateDish = async (dishId: string, updates: Partial<MenuItem>, new
   if (error) throw error;
 };
 
+// ---- Sub-menu items ----
+
+export const addSubMenuItem = async (dish_id: string, item: SubMenuItem): Promise<void> => {
+  const { error } = await supabase
+    .from('sub_menu_items')
+    .insert([{ ...item, dish_id }]);
+
+  if (error) throw error;
+};
+
+export const updateSubMenuItem = async (itemId: string, updates: Partial<SubMenuItem>): Promise<void> => {
+  const { error } = await supabase
+    .from('sub_menu_items')
+    .update(updates)
+    .eq('id', itemId);
+
+  if (error) throw error;
+};
+
+export const deleteSubMenuItem = async (itemId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('sub_menu_items')
+    .delete()
+    .eq('id', itemId);
+
+  if (error) throw error;
+};
+
 // ---- Menu generation (still mock-based for now) ----
 // If you want, next we’ll refactor this to pull from Supabase too.
 
@@ -161,7 +190,7 @@ function bucketToSectionTitle(bucket: keyof MenuPreferences["composition"]) {
   switch (bucket) {
     case "appetizers": return "Appetizers & Starters";
     case "mains": return "Main Course Selection";
-    case "liveStations": return "Interactive Stations";
+    case "liveStations": return "Live Stations";
     case "sides": return "Accompaniments";
     case "desserts": return "The Grand Finale (Desserts)";
     case "beverages": return "Beverage Craft";
@@ -186,7 +215,7 @@ export const fetchMenuFromBackend = async (prefs: MenuPreferences): Promise<Gene
   // If Any/Mix: pull from all cuisines. Otherwise pull from selected cuisines.
   let query = supabase
     .from("dishes")
-    .select('id, name, description, "dietaryTags", "imageUrl", cuisine, category');
+    .select('id, name, description, "dietaryTags", "imageUrl", cuisine, category, sub_menu_items (id, name, description, "dietaryTags")');
 
   if (!isAnyMix) {
     query = query.in("cuisine", selected);
@@ -214,7 +243,8 @@ export const fetchMenuFromBackend = async (prefs: MenuPreferences): Promise<Gene
       name: row.name,
       description: row.description ?? "",
       dietaryTags: row.dietaryTags ?? [],
-      imageUrl: row.imageUrl ?? ""
+      imageUrl: row.imageUrl ?? "",
+      subMenuItems: row.sub_menu_items ?? []
     });
   }
 

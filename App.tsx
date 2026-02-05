@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [menu, setMenu] = useState<GeneratedMenu | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('New');
+  const [activeTab, setActiveTab] = useState('New Menu');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -76,7 +76,7 @@ const App: React.FC = () => {
   const handleViewHistoryMenu = (menuData: GeneratedMenu) => {
     setMenu(menuData);
     setImageUrl(menuData.vibeDescription);
-    setActiveTab('New'); // Switch to "New" tab view so the previewer shows
+    setActiveTab('New Menu'); // Switch to "New Menu" tab view so the previewer shows
   };
 
   const NavItem = ({ icon, label }: { icon: string, label: string }) => (
@@ -150,8 +150,8 @@ const App: React.FC = () => {
       {/* MOBILE BOTTOM NAV */}
       <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] no-print w-[90%] max-w-sm">
         <div className="bg-white/90 backdrop-blur-xl border border-white/50 rounded-3xl px-2 py-2 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-          <NavItem label="New" icon="✨" />
-          <NavItem label="Bank" icon="🏦" />
+          <NavItem label="New Menu" icon="✨" />
+          <NavItem label="Item Bank" icon="🏦" />
           <NavItem label="History" icon="📖" />
           <NavItem label="Brand" icon="🎨" />
           <button
@@ -176,7 +176,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'New' && !menu && !isLoading ? (
+          {activeTab === 'New Menu' && !menu && !isLoading ? (
             <div className="flex flex-col items-center">
               <div className="flex items-center space-x-3 mb-8 no-print">
                 <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-violet-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-teal-200">🥗</div>
@@ -184,7 +184,7 @@ const App: React.FC = () => {
               </div>
               <MenuForm onSubmit={handleGenerateMenu} isLoading={isLoading} />
             </div>
-          ) : activeTab === 'Bank' ? (
+          ) : activeTab === 'Item Bank' ? (
             <DishBank userRole={userRole} />
           ) : activeTab === 'History' ? (
             <MenuHistory onViewMenu={handleViewHistoryMenu} />
