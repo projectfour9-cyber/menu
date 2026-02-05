@@ -166,10 +166,10 @@ export const MenuForm: React.FC<MenuFormProps> = ({ onSubmit, isLoading }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Counter label="Starters" value={formData.composition.appetizers} onUpdate={(d) => updateCount('appetizers', d)} />
             <Counter label="Main Deals" value={formData.composition.mains} onUpdate={(d) => updateCount('mains', d)} />
-            <Counter label="Fun Stations" value={formData.composition.liveStations} onUpdate={(d) => updateCount('liveStations', d)} />
+            <Counter label="Live Stations" value={formData.composition.liveStations} onUpdate={(d) => updateCount('liveStations', d)} />
             <Counter label="Sides" value={formData.composition.sides} onUpdate={(d) => updateCount('sides', d)} />
             <Counter label="Sweet Stuff" value={formData.composition.desserts} onUpdate={(d) => updateCount('desserts', d)} />
-            <Counter label="Cool Drinks" value={formData.composition.beverages} onUpdate={(d) => updateCount('beverages', d)} />
+            <Counter label="Beverages" value={formData.composition.beverages} onUpdate={(d) => updateCount('beverages', d)} />
           </div>
         </section>
 

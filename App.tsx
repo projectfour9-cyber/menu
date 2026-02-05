@@ -124,8 +124,8 @@ const App: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <NavItem label="New" icon="✨" />
-            <NavItem label="Bank" icon="🏦" />
+            <NavItem label="New Menu" icon="✨" />
+            <NavItem label="Item Bank" icon="🏦" />
             <NavItem label="History" icon="📖" />
             <NavItem label="Brand" icon="🎨" />
           </div>
