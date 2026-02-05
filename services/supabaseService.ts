@@ -111,12 +111,21 @@ export const fetchBannerForCuisine = async (cuisine: string): Promise<string | n
 };
 
 
-export const addDishToLibrary = async (cuisine: string, category: string, dish: MenuItem): Promise<void> => {
-  const { error } = await supabase
+export const addDishToLibrary = async (cuisine: string, category: string, dish: MenuItem): Promise<MenuItem> => {
+  const { data, error } = await supabase
     .from('dishes')
-    .insert([{ ...dish, cuisine, category }]);
+    .insert([{ ...dish, cuisine, category }])
+    .select('id, name, description, "dietaryTags", "imageUrl"')
+    .single();
 
   if (error) throw error;
+  return {
+    id: data.id,
+    name: data.name,
+    description: data.description ?? '',
+    dietaryTags: data.dietaryTags ?? [],
+    imageUrl: data.imageUrl ?? ''
+  };
 };
 
 export const updateDish = async (dishId: string, updates: Partial<MenuItem>, newCuisine?: string): Promise<void> => {
@@ -136,12 +145,15 @@ export const updateDish = async (dishId: string, updates: Partial<MenuItem>, new
 
 // ---- Sub-menu items ----
 
-export const addSubMenuItem = async (dish_id: string, item: SubMenuItem): Promise<void> => {
-  const { error } = await supabase
+export const addSubMenuItem = async (dish_id: string, item: SubMenuItem): Promise<SubMenuItem> => {
+  const { data, error } = await supabase
     .from('sub_menu_items')
-    .insert([{ ...item, dish_id }]);
+    .insert([{ ...item, dish_id }])
+    .select('id, name, description, "dietaryTags"')
+    .single();
 
   if (error) throw error;
+  return data as SubMenuItem;
 };
 
 export const updateSubMenuItem = async (itemId: string, updates: Partial<SubMenuItem>): Promise<void> => {
@@ -160,6 +172,17 @@ export const deleteSubMenuItem = async (itemId: string): Promise<void> => {
     .eq('id', itemId);
 
   if (error) throw error;
+};
+
+export const fetchSubMenuItemsByDishId = async (dishId: string): Promise<SubMenuItem[]> => {
+  const { data, error } = await supabase
+    .from('sub_menu_items')
+    .select('id, name, description, "dietaryTags"')
+    .eq('dish_id', dishId)
+    .order('name', { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as SubMenuItem[];
 };
 
 // ---- Menu generation (still mock-based for now) ----
