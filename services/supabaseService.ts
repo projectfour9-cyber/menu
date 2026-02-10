@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { MenuPreferences, GeneratedMenu, MenuItem, SubMenuItem } from "../types";
+import { MenuPreferences, GeneratedMenu, MenuItem, SubMenuItem, UserProfile } from "../types";
 
 const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
@@ -161,6 +161,52 @@ export const updateSubMenuItem = async (itemId: string, updates: Partial<SubMenu
     .from('sub_menu_items')
     .update(updates)
     .eq('id', itemId);
+
+  if (error) throw error;
+};
+
+// ---- Admin users ----
+
+export const listProfiles = async (): Promise<UserProfile[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, role, email')
+    .order('email', { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as UserProfile[];
+};
+
+export const updateProfileRole = async (userId: string, role: 'admin' | 'staff'): Promise<void> => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role })
+    .eq('id', userId);
+
+  if (error) throw error;
+};
+
+export const adminCreateUser = async (payload: { email: string; password: string; role: 'admin' | 'staff'; }) => {
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    body: {
+      action: 'create',
+      email: payload.email,
+      password: payload.password,
+      role: payload.role
+    }
+  });
+
+  if (error) throw error;
+  return data as { userId: string; profile: UserProfile };
+};
+
+export const adminDeleteUser = async (userId: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('admin-users', {
+    body: {
+      action: 'delete',
+      userId
+    }
+  });
 
   if (error) throw error;
 };
