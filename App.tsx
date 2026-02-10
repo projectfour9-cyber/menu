@@ -8,6 +8,7 @@ import { Loader } from './components/Loader';
 import { DishBank } from './components/DishBank';
 import { Auth } from './components/Auth';
 import { MenuHistory } from './components/MenuHistory';
+import { AdminPanel } from './components/AdminPanel';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -127,6 +128,7 @@ const App: React.FC = () => {
             <NavItem label="New Menu" icon="✨" />
             <NavItem label="Item Bank" icon="🏦" />
             <NavItem label="History" icon="📖" />
+            {userRole === 'admin' && <NavItem label="Admin Panel" icon="🔐" />}
             <NavItem label="Brand" icon="🎨" />
           </div>
         </div>
@@ -153,7 +155,7 @@ const App: React.FC = () => {
           <NavItem label="New Menu" icon="✨" />
           <NavItem label="Item Bank" icon="🏦" />
           <NavItem label="History" icon="📖" />
-          <NavItem label="Brand" icon="🎨" />
+          {userRole === 'admin' && <NavItem label="Admin Panel" icon="🔐" />}
           <button
             onClick={handleLogout}
             className="flex flex-col items-center justify-center px-4 py-3 lg:py-4 rounded-xl lg:rounded-2xl transition-all text-slate-500 hover:bg-slate-100"
@@ -188,6 +190,8 @@ const App: React.FC = () => {
             <DishBank userRole={userRole} />
           ) : activeTab === 'History' ? (
             <MenuHistory onViewMenu={handleViewHistoryMenu} />
+          ) : activeTab === 'Admin Panel' && userRole === 'admin' ? (
+            <AdminPanel />
           ) : isLoading ? (
             <div className="min-h-[500px] flex items-center justify-center bg-white rounded-[3rem] shadow-xl border-8 border-white">
               <Loader />

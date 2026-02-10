@@ -346,3 +346,76 @@ export const deleteMenuFromHistory = async (menuId: string) => {
 
   if (error) throw error;
 };
+
+// ---- User Management (Admin Only) ----
+
+export const fetchAllUsers = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, role')
+    .order('email', { ascending: true });
+
+  if (error) throw error;
+  return data;
+};
+
+export const createUser = async (email: string, password: string, role: 'admin' | 'staff') => {
+  // Create auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        role: role
+      }
+    }
+  });
+
+  if (authError) throw authError;
+
+  // The trigger will automatically create the profile, but we need to update the role
+  if (authData.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ role })
+      .eq('id', authData.user.id);
+
+    if (profileError) throw profileError;
+  }
+
+  return authData.user;
+};
+
+export const deleteUser = async (userId: string) => {
+  // We need to use the admin API to delete users
+  // For now, we'll just delete from profiles and let the cascade handle it
+  // In production, you'd want to use the service role to delete from auth.users
+
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+
+  if (error) throw error;
+
+  // Note: This won't delete from auth.users without admin privileges
+  // The proper way would be to use supabase.auth.admin.deleteUser(userId)
+  // which requires the service role key
+};
+
+export const sendPasswordResetEmail = async (email: string) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  });
+
+  if (error) throw error;
+};
+
+export const updateUserRole = async (userId: string, newRole: 'admin' | 'staff') => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role: newRole })
+    .eq('id', userId);
+
+  if (error) throw error;
+};

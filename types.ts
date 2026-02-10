@@ -57,3 +57,10 @@ export interface UserProfile {
   role: 'admin' | 'staff';
   email: string;
 }
+
+export interface User {
+  id: string;
+  email: string;
+  role: 'admin' | 'staff';
+  created_at?: string;
+}
