@@ -207,6 +207,9 @@ export const adminCreateUser = async (
   options?: { debug?: boolean }
 ) => {
   const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw new Error("Missing access token. Make sure the user is signed in before calling adminCreateUser.");
+  }
   const debug = options?.debug;
   const { data, error } = await supabase.functions.invoke(debug ? 'admin-users?debug=1' : 'admin-users', {
     body: {
@@ -215,9 +218,7 @@ export const adminCreateUser = async (
       password: payload.password,
       role: payload.role
     },
-    headers: accessToken
-      ? { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
-      : undefined
+    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
   });
 
   if (error) throw error;
@@ -226,15 +227,16 @@ export const adminCreateUser = async (
 
 export const adminDeleteUser = async (userId: string, options?: { debug?: boolean }): Promise<void> => {
   const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw new Error("Missing access token. Make sure the user is signed in before calling adminDeleteUser.");
+  }
   const debug = options?.debug;
   const { error } = await supabase.functions.invoke(debug ? 'admin-users?debug=1' : 'admin-users', {
     body: {
       action: 'delete',
       userId
     },
-    headers: accessToken
-      ? { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
-      : undefined
+    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
   });
 
   if (error) throw error;
