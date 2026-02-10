@@ -1,18 +1,4 @@
--- Instructions: Run this SQL in your Supabase SQL Editor or via the Supabase dashboard
--- This creates all necessary admin functions for user management
-
--- 1. Function to delete a user
-CREATE OR REPLACE FUNCTION delete_user(user_id UUID)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  DELETE FROM auth.users WHERE id = user_id;
-END;
-$$;
-
--- 2. Function to create a user without logging them in (admin only)
+-- Create a function to create a user without logging them in (admin only)
 CREATE OR REPLACE FUNCTION admin_create_user(
   user_email TEXT,
   user_password TEXT,
@@ -68,7 +54,7 @@ BEGIN
 END;
 $$;
 
--- 3. Function to reset a user's password directly (admin only)
+-- Create a function to reset a user's password directly (admin only)
 CREATE OR REPLACE FUNCTION admin_reset_password(
   user_id UUID,
   new_password TEXT
@@ -78,6 +64,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
+  -- Update the password in auth.users
   UPDATE auth.users
   SET 
     encrypted_password = crypt(new_password, gen_salt('bf')),
@@ -87,6 +74,5 @@ END;
 $$;
 
 -- Grant execute permissions to authenticated users
-GRANT EXECUTE ON FUNCTION delete_user(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_create_user(TEXT, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_reset_password(UUID, TEXT) TO authenticated;

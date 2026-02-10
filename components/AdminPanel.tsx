@@ -4,7 +4,7 @@ import {
     fetchAllUsers,
     createUser,
     deleteUser,
-    sendPasswordResetEmail,
+    resetUserPassword,
     updateUserRole
 } from '../services/supabaseService';
 
@@ -17,6 +17,10 @@ export const AdminPanel: React.FC = () => {
     const [newUserPassword, setNewUserPassword] = useState('');
     const [newUserRole, setNewUserRole] = useState<'admin' | 'staff'>('staff');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+    const [resetPasswordUserId, setResetPasswordUserId] = useState<string>('');
+    const [resetPasswordEmail, setResetPasswordEmail] = useState<string>('');
+    const [newPasswordValue, setNewPasswordValue] = useState('');
 
     useEffect(() => {
         loadUsers();
@@ -75,18 +79,25 @@ export const AdminPanel: React.FC = () => {
         }
     };
 
-    const handleResetPassword = async (email: string) => {
-        if (!window.confirm(`Send password reset email to "${email}"?`)) {
-            return;
-        }
+    const handleResetPassword = (userId: string, email: string) => {
+        setResetPasswordUserId(userId);
+        setResetPasswordEmail(email);
+        setNewPasswordValue('');
+        setShowResetPasswordModal(true);
+    };
+
+    const handleConfirmResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
 
         try {
-            setActionLoading(email);
+            setActionLoading('reset');
             setError(null);
-            await sendPasswordResetEmail(email);
-            alert(`Password reset email sent to ${email}`);
+            await resetUserPassword(resetPasswordUserId, newPasswordValue);
+            setShowResetPasswordModal(false);
+            setNewPasswordValue('');
+            alert(`Password reset successfully for ${resetPasswordEmail}`);
         } catch (err: any) {
-            setError(err.message || 'Failed to send password reset email');
+            setError(err.message || 'Failed to reset password');
         } finally {
             setActionLoading(null);
         }
@@ -197,12 +208,12 @@ export const AdminPanel: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end space-x-2">
                                                 <button
-                                                    onClick={() => handleResetPassword(user.email)}
-                                                    disabled={actionLoading === user.email}
+                                                    onClick={() => handleResetPassword(user.id, user.email)}
+                                                    disabled={actionLoading === 'reset'}
                                                     className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="Send password reset email"
+                                                    title="Reset password"
                                                 >
-                                                    {actionLoading === user.email ? '...' : '🔑 Reset'}
+                                                    🔑 Reset
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteUser(user.id, user.email)}
@@ -293,6 +304,62 @@ export const AdminPanel: React.FC = () => {
                                     className="flex-1 bg-gradient-to-r from-teal-600 to-violet-600 hover:from-teal-700 hover:to-violet-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-teal-200 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {actionLoading === 'add' ? 'Creating...' : 'Create User'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset Password Modal */}
+            {showResetPasswordModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+                    <div className="bg-white rounded-[3rem] shadow-2xl border-8 border-white max-w-md w-full p-8 animate-fade-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-black text-stone-800">Reset Password</h2>
+                            <button
+                                onClick={() => setShowResetPasswordModal(false)}
+                                className="text-stone-400 hover:text-stone-600 text-2xl"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-stone-600 mb-6">
+                            Reset password for: <strong>{resetPasswordEmail}</strong>
+                        </p>
+
+                        <form onSubmit={handleConfirmResetPassword} className="space-y-5">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">
+                                    New Password
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    placeholder="Enter new password"
+                                    className="w-full px-6 py-4 bg-teal-50/30 border-2 border-teal-50 rounded-2xl outline-none focus:border-teal-400 focus:bg-white transition-all text-sm font-medium"
+                                    value={newPasswordValue}
+                                    onChange={(e) => setNewPasswordValue(e.target.value)}
+                                    minLength={6}
+                                />
+                                <p className="text-xs text-stone-400 ml-4 mt-1">Minimum 6 characters</p>
+                            </div>
+
+                            <div className="flex space-x-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowResetPasswordModal(false)}
+                                    className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-black py-4 rounded-2xl transition-all text-sm"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={actionLoading === 'reset'}
+                                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {actionLoading === 'reset' ? 'Resetting...' : 'Reset Password'}
                                 </button>
                             </div>
                         </form>

@@ -360,30 +360,15 @@ export const fetchAllUsers = async () => {
 };
 
 export const createUser = async (email: string, password: string, role: 'admin' | 'staff') => {
-  // Create auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        role: role
-      }
-    }
+  // Use RPC to call admin_create_user which doesn't log in the new user
+  const { data, error } = await supabase.rpc('admin_create_user', {
+    user_email: email,
+    user_password: password,
+    user_role: role
   });
 
-  if (authError) throw authError;
-
-  // The trigger will automatically create the profile, but we need to update the role
-  if (authData.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ role })
-      .eq('id', authData.user.id);
-
-    if (profileError) throw profileError;
-  }
-
-  return authData.user;
+  if (error) throw error;
+  return data; // Returns the new user ID
 };
 
 export const deleteUser = async (userId: string) => {
@@ -397,6 +382,16 @@ export const deleteUser = async (userId: string) => {
 export const sendPasswordResetEmail = async (email: string) => {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin,
+  });
+
+  if (error) throw error;
+};
+
+export const resetUserPassword = async (userId: string, newPassword: string) => {
+  // Use RPC to call admin_reset_password which directly updates the password
+  const { error } = await supabase.rpc('admin_reset_password', {
+    user_id: userId,
+    new_password: newPassword
   });
 
   if (error) throw error;
