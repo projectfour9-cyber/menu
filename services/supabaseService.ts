@@ -210,6 +210,7 @@ export const adminCreateUser = async (
   if (!session) {
     throw new Error("Missing access token. Make sure the user is signed in before calling adminCreateUser.");
   }
+  const accessToken = session.access_token;
   const debug = options?.debug;
   const { data, error } = await supabase.functions.invoke(debug ? 'admin-users?debug=1' : 'admin-users', {
     body: {
@@ -217,7 +218,8 @@ export const adminCreateUser = async (
       email: payload.email,
       password: payload.password,
       role: payload.role
-    }
+    },
+    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
   });
 
   if (error) throw error;
@@ -229,12 +231,14 @@ export const adminDeleteUser = async (userId: string, options?: { debug?: boolea
   if (!session) {
     throw new Error("Missing access token. Make sure the user is signed in before calling adminDeleteUser.");
   }
+  const accessToken = session.access_token;
   const debug = options?.debug;
   const { error } = await supabase.functions.invoke(debug ? 'admin-users?debug=1' : 'admin-users', {
     body: {
       action: 'delete',
       userId
-    }
+    },
+    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
   });
 
   if (error) throw error;
