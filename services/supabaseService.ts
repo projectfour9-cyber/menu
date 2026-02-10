@@ -186,7 +186,7 @@ export const updateProfileRole = async (userId: string, role: 'admin' | 'staff')
   if (error) throw error;
 };
 
-const getAccessToken = async () => {
+const ensureSession = async () => {
   const { data } = await supabase.auth.getSession();
   const session = data?.session;
   if (!session) return null;
@@ -196,18 +196,18 @@ const getAccessToken = async () => {
 
   if (shouldRefresh) {
     const { data: refreshed } = await supabase.auth.refreshSession();
-    return refreshed?.session?.access_token || null;
+    return refreshed?.session || null;
   }
 
-  return session.access_token || null;
+  return session;
 };
 
 export const adminCreateUser = async (
   payload: { email: string; password: string; role: 'admin' | 'staff' },
   options?: { debug?: boolean }
 ) => {
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
+  const session = await ensureSession();
+  if (!session) {
     throw new Error("Missing access token. Make sure the user is signed in before calling adminCreateUser.");
   }
   const debug = options?.debug;
@@ -217,8 +217,7 @@ export const adminCreateUser = async (
       email: payload.email,
       password: payload.password,
       role: payload.role
-    },
-    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
+    }
   });
 
   if (error) throw error;
@@ -226,8 +225,8 @@ export const adminCreateUser = async (
 };
 
 export const adminDeleteUser = async (userId: string, options?: { debug?: boolean }): Promise<void> => {
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
+  const session = await ensureSession();
+  if (!session) {
     throw new Error("Missing access token. Make sure the user is signed in before calling adminDeleteUser.");
   }
   const debug = options?.debug;
@@ -235,8 +234,7 @@ export const adminDeleteUser = async (userId: string, options?: { debug?: boolea
     body: {
       action: 'delete',
       userId
-    },
-    headers: { Authorization: `Bearer ${accessToken}`, ...(debug ? { "x-debug": "1" } : {}) }
+    }
   });
 
   if (error) throw error;
