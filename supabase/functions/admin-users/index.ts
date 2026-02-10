@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.204.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const MENU_SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const MENU_SUPABASE_ANON_KEY = Deno.env.get("MENU_SUPABASE_ANON_KEY") ?? "";
+const MENU_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("MENU_SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const jsonResponse = (payload: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(payload), {
@@ -16,12 +16,12 @@ serve(async (req) => {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL || !MENU_SUPABASE_ANON_KEY || !MENU_SUPABASE_SERVICE_ROLE_KEY) {
     return jsonResponse({ error: "Missing Supabase environment variables" }, 500);
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const userClient = createClient(SUPABASE_URL, MENU_SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } }
   });
 
@@ -43,7 +43,7 @@ serve(async (req) => {
   const body = await req.json();
   const action = body?.action;
 
-  const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const serviceClient = createClient(SUPABASE_URL, MENU_SUPABASE_SERVICE_ROLE_KEY);
 
   if (action === "create") {
     const { email, password, role } = body ?? {};
