@@ -387,20 +387,11 @@ export const createUser = async (email: string, password: string, role: 'admin' 
 };
 
 export const deleteUser = async (userId: string) => {
-  // We need to use the admin API to delete users
-  // For now, we'll just delete from profiles and let the cascade handle it
-  // In production, you'd want to use the service role to delete from auth.users
-
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', userId);
+  // Use RPC to call the delete_user function which has SECURITY DEFINER privileges
+  // This allows it to delete from auth.users table
+  const { error } = await supabase.rpc('delete_user', { user_id: userId });
 
   if (error) throw error;
-
-  // Note: This won't delete from auth.users without admin privileges
-  // The proper way would be to use supabase.auth.admin.deleteUser(userId)
-  // which requires the service role key
 };
 
 export const sendPasswordResetEmail = async (email: string) => {

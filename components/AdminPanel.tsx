@@ -41,15 +41,20 @@ export const AdminPanel: React.FC = () => {
             setActionLoading('add');
             setError(null);
             await createUser(newUserEmail, newUserPassword, newUserRole);
+
+            // Clear form and close modal immediately after successful creation
             setNewUserEmail('');
             setNewUserPassword('');
             setNewUserRole('staff');
             setShowAddUserModal(false);
+            setActionLoading(null);
+
+            // Reload users (if this fails, at least the modal is closed)
             await loadUsers();
         } catch (err: any) {
             setError(err.message || 'Failed to create user');
-        } finally {
             setActionLoading(null);
+            // Keep modal open on error so user can see what went wrong
         }
     };
 
@@ -182,8 +187,8 @@ export const AdminPanel: React.FC = () => {
                                                 onClick={() => handleToggleRole(user.id, user.role)}
                                                 disabled={actionLoading === user.id + '-role'}
                                                 className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${user.role === 'admin'
-                                                        ? 'bg-gradient-to-r from-teal-100 to-violet-100 text-teal-700 hover:from-teal-200 hover:to-violet-200'
-                                                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                                    ? 'bg-gradient-to-r from-teal-100 to-violet-100 text-teal-700 hover:from-teal-200 hover:to-violet-200'
+                                                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                                                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                                             >
                                                 {actionLoading === user.id + '-role' ? '...' : user.role}
