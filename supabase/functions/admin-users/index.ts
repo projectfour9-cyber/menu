@@ -5,6 +5,14 @@ const MENU_SUPABASE_URL = Deno.env.get("MENU_SUPABASE_URL") ?? "";
 const MENU_SUPABASE_ANON_KEY = Deno.env.get("MENU_SUPABASE_ANON_KEY") ?? "";
 const MENU_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("MENU_SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+const resolvedUrl = SUPABASE_URL || MENU_SUPABASE_URL;
+const resolvedAnonKey = SUPABASE_ANON_KEY || MENU_SUPABASE_ANON_KEY;
+const resolvedServiceKey = SUPABASE_SERVICE_ROLE_KEY || MENU_SUPABASE_SERVICE_ROLE_KEY;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -26,18 +34,25 @@ serve(async (req) => {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
-  if (!MENU_SUPABASE_URL || !MENU_SUPABASE_ANON_KEY || !MENU_SUPABASE_SERVICE_ROLE_KEY) {
+  if (!resolvedUrl || !resolvedAnonKey || !resolvedServiceKey) {
     return jsonResponse({ error: "Missing Supabase environment variables" }, 500);
   }
 
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const userClient = createClient(MENU_SUPABASE_URL, MENU_SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } }
+  const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+  if (!authHeader) {
+    return jsonResponse({ error: "Unauthorized: missing Authorization header" }, 401);
+  }
+  const accessToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : authHeader;
+
+  const userClient = createClient(resolvedUrl, resolvedAnonKey, {
+    auth: { persistSession: false }
   });
 
-  const { data: { user }, error: userError } = await userClient.auth.getUser();
+  const { data: { user }, error: userError } = await userClient.auth.getUser(accessToken);
   if (userError || !user) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
+    return jsonResponse({ error: userError?.message || "Unauthorized" }, 401);
   }
 
   const { data: profile, error: profileError } = await userClient
@@ -53,7 +68,9 @@ serve(async (req) => {
   const body = await req.json();
   const action = body?.action;
 
-  const serviceClient = createClient(MENU_SUPABASE_URL, MENU_SUPABASE_SERVICE_ROLE_KEY);
+  const serviceClient = createClient(resolvedUrl, resolvedServiceKey, {
+    auth: { persistSession: false }
+  });
 
   if (action === "create") {
     const { email, password, role } = body ?? {};
