@@ -19,3 +19,4 @@ This contains everything you need to run your app locally.
    `npm run dev`
 
 There is a develop branch set up for development.
+supabase at 127.0.0.1:53453
