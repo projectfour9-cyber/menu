@@ -188,7 +188,18 @@ export const updateProfileRole = async (userId: string, role: 'admin' | 'staff')
 
 const getAccessToken = async () => {
   const { data } = await supabase.auth.getSession();
-  return data?.session?.access_token || null;
+  const session = data?.session;
+  if (!session) return null;
+
+  const expiresAtMs = session.expires_at ? session.expires_at * 1000 : 0;
+  const shouldRefresh = expiresAtMs > 0 && Date.now() > (expiresAtMs - 60_000);
+
+  if (shouldRefresh) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    return refreshed?.session?.access_token || null;
+  }
+
+  return session.access_token || null;
 };
 
 export const adminCreateUser = async (
