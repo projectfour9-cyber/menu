@@ -8,6 +8,7 @@ import { Loader } from './components/Loader';
 import { DishBank } from './components/DishBank';
 import { Auth } from './components/Auth';
 import { MenuHistory } from './components/MenuHistory';
+import { AdminPanel } from './components/AdminPanel';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -128,6 +129,7 @@ const App: React.FC = () => {
             <NavItem label="Item Bank" icon="🏦" />
             <NavItem label="History" icon="📖" />
             <NavItem label="Brand" icon="🎨" />
+            {userRole === 'admin' && <NavItem label="Admin" icon="🛡️" />}
           </div>
         </div>
 
@@ -135,7 +137,16 @@ const App: React.FC = () => {
           {userRole && (
             <div className="px-4 py-3 bg-white/50 rounded-2xl border border-white/50 text-center">
               <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 block mb-1">Logged in as</span>
-              <span className={`text-xs font-bold ${userRole === 'admin' ? 'text-teal-700' : 'text-stone-600'}`}>{userRole.toUpperCase()}</span>
+              <span className="text-xs font-bold text-stone-700 block">{session?.user?.email || 'Unknown'}</span>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${userRole === 'admin' ? 'text-teal-700' : 'text-stone-600'}`}>{userRole.toUpperCase()}</span>
+              {userRole === 'admin' && (
+                <button
+                  onClick={() => setActiveTab('Admin')}
+                  className="mt-3 w-full bg-teal-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-teal-700 transition-colors"
+                >
+                  Open Admin Panel
+                </button>
+              )}
             </div>
           )}
           <button
@@ -154,6 +165,7 @@ const App: React.FC = () => {
           <NavItem label="Item Bank" icon="🏦" />
           <NavItem label="History" icon="📖" />
           <NavItem label="Brand" icon="🎨" />
+          {userRole === 'admin' && <NavItem label="Admin" icon="🛡️" />}
           <button
             onClick={handleLogout}
             className="flex flex-col items-center justify-center px-4 py-3 lg:py-4 rounded-xl lg:rounded-2xl transition-all text-slate-500 hover:bg-slate-100"
@@ -184,6 +196,12 @@ const App: React.FC = () => {
               </div>
               <MenuForm onSubmit={handleGenerateMenu} isLoading={isLoading} />
             </div>
+          ) : activeTab === 'Admin' ? (
+            <AdminPanel
+              currentUserId={session?.user?.id || ''}
+              currentUserEmail={session?.user?.email}
+              userRole={userRole}
+            />
           ) : activeTab === 'Item Bank' ? (
             <DishBank userRole={userRole} />
           ) : activeTab === 'History' ? (
