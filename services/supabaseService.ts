@@ -143,6 +143,15 @@ export const updateDish = async (dishId: string, updates: Partial<MenuItem>, new
   if (error) throw error;
 };
 
+export const deleteDish = async (dishId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('dishes')
+    .delete()
+    .eq('id', dishId);
+
+  if (error) throw error;
+};
+
 // ---- Sub-menu items ----
 
 export const addSubMenuItem = async (dish_id: string, item: SubMenuItem): Promise<SubMenuItem> => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MenuItem } from '../types';
-import { fetchCuisineList, fetchDishesByCuisine, updateDish, addSubMenuItem, updateSubMenuItem, deleteSubMenuItem, addDishToLibrary } from '../services/supabaseService';
+import { fetchCuisineList, fetchDishesByCuisine, updateDish, addSubMenuItem, updateSubMenuItem, deleteSubMenuItem, addDishToLibrary, deleteDish } from '../services/supabaseService';
 
 interface DishBankProps {
   userRole?: 'admin' | 'staff' | null;
@@ -171,6 +171,22 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
     }
   };
 
+  const handleDeleteDish = async (dishId: string, dishName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${dishName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteDish(dishId);
+      // Refresh dishes
+      const data = await fetchDishesByCuisine(selectedCuisine);
+      setDishes(data);
+    } catch (e) {
+      console.error('Failed to delete dish', e);
+      alert('Failed to delete dish. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -272,13 +288,22 @@ export const DishBank: React.FC<DishBankProps> = ({ userRole }) => {
                           {dish.description || '—'}
                         </p>
                         {userRole === 'admin' && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openEditModal(dish); }}
-                            className="ml-2 p-2 text-slate-400 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all"
-                            title="Edit Dish"
-                          >
-                            ✏️
-                          </button>
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openEditModal(dish); }}
+                              className="p-2 text-slate-400 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all"
+                              title="Edit Dish"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteDish(dish.id || '', dish.name); }}
+                              className="p-2 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all"
+                              title="Delete Dish"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
