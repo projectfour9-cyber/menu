@@ -25,6 +25,21 @@ const jsonResponse = (payload: Record<string, unknown>, status = 200) =>
     headers: { "Content-Type": "application/json", ...corsHeaders }
   });
 
+const decodeJwtPayload = (token: string) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const payload = parts[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const padded = payload + "=".repeat((4 - (payload.length % 4)) % 4);
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -45,6 +60,41 @@ serve(async (req) => {
   const accessToken = authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length)
     : authHeader;
+
+  const debug = req.headers.get("x-debug") === "1" || new URL(req.url).searchParams.get("debug") === "1";
+  if (debug) {
+    const payload = decodeJwtPayload(accessToken);
+    console.log("admin-users debug", {
+      resolvedUrl,
+      hasAuthHeader: Boolean(authHeader),
+      tokenLength: accessToken.length,
+      tokenPayload: payload
+        ? {
+            iss: payload.iss,
+            aud: payload.aud,
+            sub: payload.sub,
+            exp: payload.exp,
+            iat: payload.iat
+          }
+        : null
+    });
+    return jsonResponse({
+      debug: {
+        resolvedUrl,
+        hasAuthHeader: Boolean(authHeader),
+        tokenLength: accessToken.length,
+        tokenPayload: payload
+          ? {
+              iss: payload.iss,
+              aud: payload.aud,
+              sub: payload.sub,
+              exp: payload.exp,
+              iat: payload.iat
+            }
+          : null
+      }
+    });
+  }
 
   const userClient = createClient(resolvedUrl, resolvedAnonKey, {
     auth: { persistSession: false }
