@@ -186,14 +186,21 @@ export const updateProfileRole = async (userId: string, role: 'admin' | 'staff')
   if (error) throw error;
 };
 
+const getAccessToken = async () => {
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token || null;
+};
+
 export const adminCreateUser = async (payload: { email: string; password: string; role: 'admin' | 'staff'; }) => {
+  const accessToken = await getAccessToken();
   const { data, error } = await supabase.functions.invoke('admin-users', {
     body: {
       action: 'create',
       email: payload.email,
       password: payload.password,
       role: payload.role
-    }
+    },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
   });
 
   if (error) throw error;
@@ -201,11 +208,13 @@ export const adminCreateUser = async (payload: { email: string; password: string
 };
 
 export const adminDeleteUser = async (userId: string): Promise<void> => {
+  const accessToken = await getAccessToken();
   const { error } = await supabase.functions.invoke('admin-users', {
     body: {
       action: 'delete',
       userId
-    }
+    },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
   });
 
   if (error) throw error;
