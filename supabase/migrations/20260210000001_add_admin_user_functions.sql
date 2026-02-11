@@ -47,8 +47,11 @@ BEGIN
   ) RETURNING id INTO new_user_id;
 
   -- Insert into profiles with the specified role
+  -- Use ON CONFLICT to update if the profile already exists (shouldn't happen, but just in case)
   INSERT INTO public.profiles (id, email, role)
-  VALUES (new_user_id, user_email, user_role);
+  VALUES (new_user_id, user_email, user_role)
+  ON CONFLICT (id) DO UPDATE 
+  SET email = EXCLUDED.email, role = EXCLUDED.role;
 
   RETURN new_user_id;
 END;
